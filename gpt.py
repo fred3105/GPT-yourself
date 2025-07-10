@@ -32,6 +32,7 @@ with open("input.txt", "r", encoding="utf-8") as f:
 # here are all the unique characters that occur in this text
 chars = sorted(list(set(text)))
 vocab_size = len(chars)
+print(f"vocab_size: {vocab_size}, unique characters: {''.join(chars)}")
 # create a mapping from characters to integers
 stoi = {ch: i for i, ch in enumerate(chars)}
 itos = {i: ch for i, ch in enumerate(chars)}
