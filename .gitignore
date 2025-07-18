@@ -1,3 +1,4 @@
 .DS_Store
 /data
 input.txt
+/fine_tuned_model

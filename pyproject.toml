@@ -1,0 +1,21 @@
+[project]
+name = "ng-video-lecture"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "accelerate>=1.9.0",
+    "datasets>=4.0.0",
+    "einops>=0.8.1",
+    "numpy>=2.3.1",
+    "pandas>=2.3.1",
+    "peft>=0.16.0",
+    "protobuf>=6.31.1",
+    "scipy>=1.16.0",
+    "sentencepiece>=0.2.0",
+    "torch>=2.7.1",
+    "transformers>=4.53.2",
+    "transformers-stream-generator>=0.0.5",
+    "trl>=0.19.1",
+]
