@@ -163,7 +163,7 @@ class MacOSLLMFineTuner:
 
     def __init__(
         self,
-        base_model="microsoft/phi-2",  # Smaller model that works well on macOS
+        base_model="Qwen/Qwen-1_8B",  # Qwen model for fine-tuning
         max_seq_length=2048,
         output_dir="./fine_tuned_model",
         use_mps=None,
@@ -220,8 +220,10 @@ class MacOSLLMFineTuner:
             self.base_model, trust_remote_code=True, padding_side="right"
         )
 
-        # Add padding token if needed
+        # Add padding token
         if tokenizer.pad_token is None:
+            if tokenizer.eos_token is None:
+                tokenizer.add_special_tokens({"eos_token": "<|endoftext|>"})
             tokenizer.pad_token = tokenizer.eos_token
 
         # Load model
@@ -239,11 +241,11 @@ class MacOSLLMFineTuner:
             r=16,  # LoRA rank
             lora_alpha=32,
             target_modules=[
-                "q_proj",
-                "v_proj",
-                "k_proj",
-                "o_proj",
-            ],  # May need adjustment per model
+                "c_attn",
+                "c_proj",
+                "w1",
+                "w2",
+            ],  # Qwen-specific modules
             lora_dropout=0.1,
             bias="none",
             task_type=TaskType.CAUSAL_LM,
@@ -376,12 +378,14 @@ def estimate_training_time(num_examples, device="mps", model_size="3b"):
     if device == "mps":  # Apple Silicon
         base_rate = {
             "phi-2": 0.3,  # hours per 10k examples
+            "qwen-1_8b": 0.5,  # hours per 10k examples
             "3b": 0.8,
             "7b": 2.0,
         }
     else:  # CPU
         base_rate = {
             "phi-2": 2.0,  # hours per 10k examples
+            "qwen-1_8b": 3.0,  # hours per 10k examples
             "3b": 5.0,
             "7b": 12.0,
         }
@@ -437,8 +441,8 @@ def main():
     parser.add_argument(
         "--model",
         type=str,
-        default="microsoft/phi-2",
-        help="Base model to fine-tune (phi-2 recommended for macOS)",
+        default="Qwen/Qwen-1_8B",
+        help="Base model to fine-tune (Qwen-1_8B recommended for macOS)",
     )
     parser.add_argument(
         "--max_seq_length", type=int, default=1024, help="Maximum sequence length"
@@ -471,7 +475,7 @@ def main():
 
     # Estimate training time
     device = "cpu" if args.use_cpu else "mps"
-    est_hours = estimate_training_time(len(df), device=device, model_size="phi-2")
+    est_hours = estimate_training_time(len(df), device=device, model_size="qwen-1_8b")
     print(f"\nEstimated training time: {est_hours:.1f} hours")
 
     # Initialize fine-tuner

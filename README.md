@@ -1,16 +1,12 @@
-# Inspiration
+Run the model
 
-Andrej Karpathy is a great source of inspiration for this project.
-If, by some miracle you do not know who he his, please check out his work.
+```bash
+uv run finetuning.py --data_path '/Users/fredericlegrand/Documents/GitHub/ng-video-lecture/data/messages' --your_name "Frederic Legrand" --model Qwen/Qwen-1_8B --num_epochs 3 --batch_size 2
 
-## How to use
+```
 
-- Download your facebook messenger data
-- Run parser.py
-- Aim to have at least 1M characters minimum
-- You might need to run extra data cleaning if your text holds special characters, links or special languages
-- Run gpt.py to train your nano GPT model on a cleaned input and wait for it to complete
+Inference
 
-## Moving to GPT2-small model
-
-- The resulting model from nano GPT is pretty bad, moving to a larger model and fine tuning the LORAS
+```bash
+uv run test_model.py --model_path ./fine_tuned_model/checkpoints/checkpoint-500
+```
