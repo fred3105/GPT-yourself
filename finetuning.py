@@ -19,7 +19,6 @@ from transformers import (
 )
 from transformers.training_args import TrainingArguments
 from datasets import Dataset
-from trl import SFTTrainer
 from peft import LoraConfig, get_peft_model, TaskType
 
 # Suppress some warnings
@@ -275,7 +274,22 @@ class MacOSLLMFineTuner:
         # Create HuggingFace dataset
         dataset = Dataset.from_list(formatted_data)
 
-        return dataset
+        # Add tokenization to the dataset
+        def tokenize_function(examples):
+            return tokenizer(
+                examples["text"],
+                truncation=True,
+                padding="max_length",
+                max_length=self.max_seq_length,
+                return_tensors="pt",
+            )
+
+        # Apply tokenization
+        tokenized_dataset = dataset.map(
+            tokenize_function, batched=True, remove_columns=dataset.column_names
+        )
+
+        return tokenized_dataset
 
     def train(self, dataset, model, tokenizer, num_epochs=3, batch_size=4):
         """Train the model"""
@@ -306,19 +320,21 @@ class MacOSLLMFineTuner:
             remove_unused_columns=False,
         )
 
-        # Data collator
+        # Data collator for causal language modeling
         from transformers.data.data_collator import DataCollatorForLanguageModeling
 
         data_collator = DataCollatorForLanguageModeling(
             tokenizer=tokenizer,
-            mlm=False,
+            mlm=False,  # For causal LM, not masked LM
         )
 
-        # Create trainer
-        trainer = SFTTrainer(
+        # Create trainer using standard Trainer instead of SFTTrainer
+        from transformers.trainer import Trainer
+
+        trainer = Trainer(
             model=model,
-            train_dataset=dataset,
             args=training_args,
+            train_dataset=dataset,
             data_collator=data_collator,
         )
 
