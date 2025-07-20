@@ -303,10 +303,10 @@ class MacOSLLMFineTuner:
         training_args = TrainingArguments(
             output_dir=str(self.output_dir / "checkpoints"),
             per_device_train_batch_size=batch_size,
-            gradient_accumulation_steps=4,
+            gradient_accumulation_steps=2,
             num_train_epochs=num_epochs,
-            learning_rate=3e-4,
-            warmup_steps=100,
+            learning_rate=2e-5,
+            warmup_steps=0,
             logging_steps=10,
             save_strategy="steps",
             save_steps=500,
@@ -318,8 +318,8 @@ class MacOSLLMFineTuner:
             bf16=False,  # BF16 is not supported on macOS
             gradient_checkpointing=True,
             max_grad_norm=0.3,
-            warmup_ratio=0.03,
-            lr_scheduler_type="cosine",
+            warmup_ratio=0.0,
+            lr_scheduler_type="constant",
             dataloader_num_workers=0,  # Important for macOS
             remove_unused_columns=False,
             report_to="wandb" if wandb_enabled else "none",
