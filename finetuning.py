@@ -293,7 +293,9 @@ class MacOSLLMFineTuner:
 
         return tokenized_dataset
 
-    def train(self, dataset, model, tokenizer, num_epochs=3, batch_size=4, wandb_enabled=False):
+    def train(
+        self, dataset, model, tokenizer, num_epochs=3, batch_size=4, wandb_enabled=False
+    ):
         """Train the model"""
         print("Starting training...")
 
@@ -343,25 +345,31 @@ class MacOSLLMFineTuner:
 
         # Train
         trainer.train()
-        
+
         # Log final metrics to wandb if enabled
         if wandb_enabled:
             try:
                 # Log training metrics
-                train_loss = trainer.state.log_history[-1].get('train_loss', 0)
-                wandb.log({
-                    "final_train_loss": train_loss,
-                    "total_training_steps": trainer.state.global_step,
-                })
-                
+                train_loss = trainer.state.log_history[-1].get("train_loss", 0)
+                wandb.log(
+                    {
+                        "final_train_loss": train_loss,
+                        "total_training_steps": trainer.state.global_step,
+                    }
+                )
+
                 # Log model parameters
                 total_params = sum(p.numel() for p in model.parameters())
-                trainable_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
-                wandb.log({
-                    "total_parameters": total_params,
-                    "trainable_parameters": trainable_params,
-                    "trainable_percentage": (trainable_params / total_params) * 100,
-                })
+                trainable_params = sum(
+                    p.numel() for p in model.parameters() if p.requires_grad
+                )
+                wandb.log(
+                    {
+                        "total_parameters": total_params,
+                        "trainable_parameters": trainable_params,
+                        "trainable_percentage": (trainable_params / total_params) * 100,
+                    }
+                )
             except Exception as e:
                 print(f"Warning: Could not log final metrics to wandb: {e}")
 
@@ -453,7 +461,7 @@ def wandb_login():
             return True
     except Exception:
         pass
-    
+
     # Try to login using environment variable or prompt
     try:
         wandb.login()
@@ -507,18 +515,13 @@ def main():
         "--wandb_project",
         type=str,
         default="llm-finetuning",
-        help="Weights & Biases project name"
+        help="Weights & Biases project name",
     )
     parser.add_argument(
-        "--wandb_run_name",
-        type=str,
-        default=None,
-        help="Weights & Biases run name"
+        "--wandb_run_name", type=str, default=None, help="Weights & Biases run name"
     )
     parser.add_argument(
-        "--disable_wandb",
-        action="store_true",
-        help="Disable Weights & Biases tracking"
+        "--disable_wandb", action="store_true", help="Disable Weights & Biases tracking"
     )
 
     args = parser.parse_args()
@@ -529,7 +532,10 @@ def main():
         wandb_enabled = wandb_login()
         if wandb_enabled:
             # Initialize wandb run
-            run_name = args.wandb_run_name or f"{args.model.split('/')[-1]}-{args.your_name or 'general'}"
+            run_name = (
+                args.wandb_run_name
+                or f"{args.model.split('/')[-1]}-{args.your_name or 'general'}"
+            )
             wandb.init(
                 project=args.wandb_project,
                 name=run_name,
@@ -541,7 +547,7 @@ def main():
                     "your_name": args.your_name,
                     "data_path": args.data_path,
                     "use_cpu": args.use_cpu,
-                }
+                },
             )
 
     # Check environment
@@ -553,14 +559,16 @@ def main():
         args.data_path, max_context_length=args.max_seq_length
     )
     df = processor.prepare_dataset(your_name=args.your_name)
-    
+
     # Log dataset info to wandb if enabled
     if wandb_enabled:
-        wandb.log({
-            "dataset_size": len(df),
-            "avg_prompt_length": df["prompt"].str.len().mean(),
-            "avg_response_length": df["response"].str.len().mean(),
-        })
+        wandb.log(
+            {
+                "dataset_size": len(df),
+                "avg_prompt_length": df["prompt"].str.len().mean(),
+                "avg_response_length": df["response"].str.len().mean(),
+            }
+        )
 
     # Estimate training time
     device = "cpu" if args.use_cpu else "mps"
@@ -593,7 +601,7 @@ def main():
 
     # Save model
     fine_tuner.save_model(model, tokenizer)
-    
+
     # Finish wandb run if enabled
     if wandb_enabled:
         wandb.finish()
