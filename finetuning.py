@@ -402,28 +402,6 @@ class MacOSLLMFineTuner:
         print("Model saved successfully!")
 
 
-def estimate_training_time(num_examples, device="mps", model_size="3b"):
-    """Estimate training time based on hardware and dataset size"""
-    # Rough estimates for macOS
-    if device == "mps":  # Apple Silicon
-        base_rate = {
-            "phi-2": 0.3,  # hours per 10k examples
-            "qwen-1_8b": 0.5,  # hours per 10k examples
-            "3b": 0.8,
-            "7b": 2.0,
-        }
-    else:  # CPU
-        base_rate = {
-            "phi-2": 2.0,  # hours per 10k examples
-            "qwen-1_8b": 3.0,  # hours per 10k examples
-            "3b": 5.0,
-            "7b": 12.0,
-        }
-
-    hours = (num_examples / 10000) * base_rate.get(model_size, 1.0)
-    return hours
-
-
 def check_environment():
     """Check the macOS environment"""
     print("=== Environment Check ===")
@@ -569,11 +547,6 @@ def main():
                 "avg_response_length": df["response"].str.len().mean(),
             }
         )
-
-    # Estimate training time
-    device = "cpu" if args.use_cpu else "mps"
-    est_hours = estimate_training_time(len(df), device=device, model_size="qwen-1_8b")
-    print(f"\nEstimated training time: {est_hours:.1f} hours")
 
     # Initialize fine-tuner
     fine_tuner = MacOSLLMFineTuner(
