@@ -3,3 +3,4 @@
 input.txt
 /fine_tuned_model
 /wandb
+/__pycache__

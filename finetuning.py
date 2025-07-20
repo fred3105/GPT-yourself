@@ -11,6 +11,7 @@ import argparse
 import platform
 import warnings
 import os
+import re
 
 # Core imports - no bitsandbytes
 import torch
@@ -35,6 +36,153 @@ class MessengerDataProcessor:
         self.min_conversation_length = min_conversation_length
         self.max_context_length = max_context_length
         self.conversations = []
+
+    def is_system_message(self, text):
+        """Check if message is a system message (group notifications, reactions, etc.)"""
+        if not text or not isinstance(text, str):
+            return True
+        
+        # Common system message patterns in English
+        english_patterns = [
+            r'.*has left the (group|conversation)',
+            r'.*left the (group|conversation)',
+            r'.*has joined the (group|conversation)',
+            r'.*joined the (group|conversation)',
+            r'.*added .* to the (group|conversation)',
+            r'.*removed .* from the (group|conversation)',
+            r'.*changed the group name',
+            r'.*changed the conversation name',
+            r'^(?!I |You |We |They |He |She |It )[A-Z][a-zA-Z\s]+ liked your message$',
+            r'^(?!I |You |We |They |He |She |It )[A-Z][a-zA-Z\s]+ reacted .* to your message$',
+            r'^(?!I |You |We |They |He |She |It )[A-Z][a-zA-Z\s]+ loved your message$',
+            r'^(?!I |You |We |They |He |She |It )[A-Z][a-zA-Z\s]+ laughed at your message$',
+            r'^(?!I |You |We |They |He |She |It )[A-Z][a-zA-Z\s]+ emphasized your message$',
+            r'^(?!I |You |We |They |He |She |It )[A-Z][a-zA-Z\s]+ questioned your message$',
+            r'^(?!I |You |We |They |He |She |It )[A-Z][a-zA-Z\s]+ disliked your message$',
+            r'.*sent a photo',
+            r'.*sent a video',
+            r'.*sent an attachment',
+            r'.*sent a voice message',
+            r'.*sent a sticker',
+            r'.*sent a GIF',
+            r'.*started a call',
+            r'.*missed a call',
+            r'.*ended the call',
+            r'.* is now an admin',
+            r'.* is no longer an admin',
+            r'The group was created',
+            r'You created the group',
+            r'.*set the group photo'
+        ]
+        
+        # Common system message patterns in French
+        french_patterns = [
+            r'.*a quitté le (groupe|conversation)',
+            r'.*a rejoint (le groupe|la conversation)',
+            r'.*a ajouté .* au (groupe|conversation)', 
+            r'.*a retiré .* du (groupe|conversation)',
+            r'.*a changé le nom du groupe',
+            r'^(?!Je |Tu |Vous |Nous |Ils |Elles |Il |Elle )[A-Z][a-zA-Z\s]+ a aimé votre message$',
+            r'^(?!Je |Tu |Vous |Nous |Ils |Elles |Il |Elle )[A-Z][a-zA-Z\s]+ a réagi .* à votre message$',
+            r'^(?!Je |Tu |Vous |Nous |Ils |Elles |Il |Elle )[A-Z][a-zA-Z\s]+ a adoré votre message$',
+            r'^(?!Je |Tu |Vous |Nous |Ils |Elles |Il |Elle )[A-Z][a-zA-Z\s]+ a ri de votre message$',
+            r'^(?!Je |Tu |Vous |Nous |Ils |Elles |Il |Elle )[A-Z][a-zA-Z\s]+ a souligné votre message$',
+            r'^(?!Je |Tu |Vous |Nous |Ils |Elles |Il |Elle )[A-Z][a-zA-Z\s]+ a questionné votre message$',
+            r'^(?!Je |Tu |Vous |Nous |Ils |Elles |Il |Elle )[A-Z][a-zA-Z\s]+ n\'a pas aimé votre message$',
+            r'.*a envoyé une photo',
+            r'.*a envoyé une vidéo',
+            r'.*a envoyé une pièce jointe',
+            r'.*a envoyé un message vocal',
+            r'.*a envoyé un autocollant',
+            r'.*a envoyé un GIF',
+            r'.*a commencé un appel',
+            r'.*a raté un appel',
+            r'.*a terminé l\'appel',
+            r'.* est maintenant administrateur',
+            r'.* n\'est plus administrateur',
+            r'Le groupe a été créé',
+            r'Vous avez créé le groupe',
+            r'.*a défini la photo du groupe'
+        ]
+        
+        # Combine all patterns
+        all_patterns = english_patterns + french_patterns
+        
+        # Check if text matches any system message pattern
+        for pattern in all_patterns:
+            if re.fullmatch(pattern, text, re.IGNORECASE):
+                return True
+                
+        return False
+
+    def preprocess_text(self, text):
+        """Clean text by removing links, emojis, and weird characters"""
+        if not text or not isinstance(text, str):
+            return ""
+        
+        # Fix Facebook's double-encoded UTF-8 characters
+        try:
+            # Facebook exports often double-encode UTF-8 as latin1 then UTF-8
+            # First try to fix the most common issue: UTF-8 bytes interpreted as latin1
+            if any(char in text for char in ['Ã', 'â', 'ð']):
+                # Encode as latin1, then decode as UTF-8
+                text = text.encode('latin1').decode('utf-8')
+        except (UnicodeDecodeError, UnicodeEncodeError):
+            # If that fails, try the reverse encoding fix
+            try:
+                text = text.encode('utf-8').decode('latin1')
+            except (UnicodeDecodeError, UnicodeEncodeError):
+                # Last resort: manual replacement of common patterns
+                replacements = {
+                    'Ã©': 'é', 'Ã ': 'à', 'Ã¨': 'è', 'Ãª': 'ê', 'Ã§': 'ç',
+                    'Ã´': 'ô', 'Ã®': 'î', 'Ã¯': 'ï', 'Ã»': 'û', 'Ã¹': 'ù',
+                    'Ã±': 'ñ', 'Ã¢': 'â', 'Ã¼': 'ü', 'Ã¶': 'ö', 'Ã¤': 'ä',
+                    'â': "'", 'â': "'", 'â': '"', 'â': '"', 'â': '—',
+                    'ð': '', 'ð': '', 'ð': '', 'ð': '', 'ð': ''
+                }
+                for wrong, correct in replacements.items():
+                    text = text.replace(wrong, correct)
+        
+        # Remove URLs (http/https links)
+        text = re.sub(r'https?://\S+', '', text)
+        
+        # Remove email addresses
+        text = re.sub(r'\S+@\S+', '', text)
+        
+        # Remove emojis and emoticons
+        # Unicode emoji ranges
+        emoji_pattern = re.compile(
+            "["
+            "\U0001F600-\U0001F64F"  # emoticons
+            "\U0001F300-\U0001F5FF"  # symbols & pictographs
+            "\U0001F680-\U0001F6FF"  # transport & map symbols
+            "\U0001F1E0-\U0001F1FF"  # flags (iOS)
+            "\U00002500-\U00002BEF"  # chinese char
+            "\U00002702-\U000027B0"
+            "\U00002702-\U000027B0"
+            "\U000024C2-\U0001F251"
+            "\U0001f926-\U0001f937"
+            "\U00010000-\U0010ffff"
+            "\u2640-\u2642"
+            "\u2600-\u2B55"
+            "\u200d"
+            "\u23cf"
+            "\u23e9"
+            "\u231a"
+            "\ufe0f"  # dingbats
+            "\u3030"
+            "]+",
+            flags=re.UNICODE
+        )
+        text = emoji_pattern.sub('', text)
+        
+        # Remove other special characters but keep basic punctuation and French accented characters
+        text = re.sub(r'[^\w\s\.\,\!\?\;\:\-\'\"àáâãäåæçèéêëìíîïðñòóôõöøùúûüýþÿÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞŸ]', '', text)
+        
+        # Remove extra whitespace
+        text = re.sub(r'\s+', ' ', text).strip()
+        
+        return text
 
     def load_messenger_data(self):
         """Load Facebook Messenger JSON data"""
@@ -82,8 +230,17 @@ class MessengerDataProcessor:
                 current_conv = []
 
             if "content" in msg and msg["content"]:
-                current_conv.append(msg)
-                last_timestamp = timestamp
+                # Skip system messages (group notifications, reactions, etc.)
+                if self.is_system_message(msg["content"]):
+                    continue
+                    
+                # Preprocess the message content
+                preprocessed_content = self.preprocess_text(msg["content"])
+                if preprocessed_content:  # Only add if there's content left after preprocessing
+                    msg_copy = msg.copy()
+                    msg_copy["content"] = preprocessed_content
+                    current_conv.append(msg_copy)
+                    last_timestamp = timestamp
 
         # Add last conversation
         if len(current_conv) >= self.min_conversation_length:
