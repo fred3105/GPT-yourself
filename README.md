@@ -1,7 +1,7 @@
 Run the model
 
 ```bash
-uv run finetuning.py --data_path '/Users/fredericlegrand/Documents/GitHub/ng-video-lecture/data/messages' --your_name "Frederic Legrand" --model gpt2-medium --num_epochs 1 --batch_size 8
+uv run finetuning.py --data_path '/Users/fredericlegrand/Documents/GitHub/ng-video-lecture/data' --your_name "Frederic Legrand" --model gpt2-medium --num_epochs 1 --batch_size 8 --max_samples 16
 ```
 
 Inference

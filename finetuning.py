@@ -41,130 +41,150 @@ class MessengerDataProcessor:
         """Check if message is a system message (group notifications, reactions, etc.)"""
         if not text or not isinstance(text, str):
             return True
-        
+
         # Common system message patterns in English
         english_patterns = [
-            r'.*has left the (group|conversation)',
-            r'.*left the (group|conversation)',
-            r'.*has joined the (group|conversation)',
-            r'.*joined the (group|conversation)',
-            r'.*added .* to the (group|conversation)',
-            r'.*removed .* from the (group|conversation)',
-            r'.*changed the group name',
-            r'.*changed the conversation name',
-            r'^(?!I |You |We |They |He |She |It )[A-Z][a-zA-Z\s]+ liked your message$',
-            r'^(?!I |You |We |They |He |She |It )[A-Z][a-zA-Z\s]+ reacted .* to your message$',
-            r'^(?!I |You |We |They |He |She |It )[A-Z][a-zA-Z\s]+ loved your message$',
-            r'^(?!I |You |We |They |He |She |It )[A-Z][a-zA-Z\s]+ laughed at your message$',
-            r'^(?!I |You |We |They |He |She |It )[A-Z][a-zA-Z\s]+ emphasized your message$',
-            r'^(?!I |You |We |They |He |She |It )[A-Z][a-zA-Z\s]+ questioned your message$',
-            r'^(?!I |You |We |They |He |She |It )[A-Z][a-zA-Z\s]+ disliked your message$',
-            r'.*sent a photo',
-            r'.*sent a video',
-            r'.*sent an attachment',
-            r'.*sent a voice message',
-            r'.*sent a sticker',
-            r'.*sent a GIF',
-            r'.*started a call',
-            r'.*missed a call',
-            r'.*ended the call',
-            r'.* is now an admin',
-            r'.* is no longer an admin',
-            r'The group was created',
-            r'You created the group',
-            r'.*set the group photo'
+            r".*has left the (group|conversation)",
+            r".*left the (group|conversation)",
+            r".*has joined the (group|conversation)",
+            r".*joined the (group|conversation)",
+            r".*added .* to the (group|conversation)",
+            r".*removed .* from the (group|conversation)",
+            r".*changed the group name",
+            r".*changed the conversation name",
+            r"^(?!I |You |We |They |He |She |It )[A-Z][a-zA-Z\s]+ liked your message$",
+            r"^(?!I |You |We |They |He |She |It )[A-Z][a-zA-Z\s]+ reacted .* to your message$",
+            r"^(?!I |You |We |They |He |She |It )[A-Z][a-zA-Z\s]+ loved your message$",
+            r"^(?!I |You |We |They |He |She |It )[A-Z][a-zA-Z\s]+ laughed at your message$",
+            r"^(?!I |You |We |They |He |She |It )[A-Z][a-zA-Z\s]+ emphasized your message$",
+            r"^(?!I |You |We |They |He |She |It )[A-Z][a-zA-Z\s]+ questioned your message$",
+            r"^(?!I |You |We |They |He |She |It )[A-Z][a-zA-Z\s]+ disliked your message$",
+            r".*sent a photo",
+            r".*sent a video",
+            r".*sent an attachment",
+            r".*sent a voice message",
+            r".*sent a sticker",
+            r".*sent a GIF",
+            r".*started a call",
+            r".*missed a call",
+            r".*ended the call",
+            r".* is now an admin",
+            r".* is no longer an admin",
+            r"The group was created",
+            r"You created the group",
+            r".*set the group photo",
         ]
-        
+
         # Common system message patterns in French
         french_patterns = [
-            r'.*a quitté le (groupe|conversation)',
-            r'.*a rejoint (le groupe|la conversation)',
-            r'.*a ajouté .* au (groupe|conversation)', 
-            r'.*a retiré .* du (groupe|conversation)',
-            r'.*a changé le nom du groupe',
-            r'^(?!Je |Tu |Vous |Nous |Ils |Elles |Il |Elle )[A-Z][a-zA-Z\s]+ a aimé votre message$',
-            r'^(?!Je |Tu |Vous |Nous |Ils |Elles |Il |Elle )[A-Z][a-zA-Z\s]+ a réagi .* à votre message$',
-            r'^(?!Je |Tu |Vous |Nous |Ils |Elles |Il |Elle )[A-Z][a-zA-Z\s]+ a adoré votre message$',
-            r'^(?!Je |Tu |Vous |Nous |Ils |Elles |Il |Elle )[A-Z][a-zA-Z\s]+ a ri de votre message$',
-            r'^(?!Je |Tu |Vous |Nous |Ils |Elles |Il |Elle )[A-Z][a-zA-Z\s]+ a souligné votre message$',
-            r'^(?!Je |Tu |Vous |Nous |Ils |Elles |Il |Elle )[A-Z][a-zA-Z\s]+ a questionné votre message$',
-            r'^(?!Je |Tu |Vous |Nous |Ils |Elles |Il |Elle )[A-Z][a-zA-Z\s]+ n\'a pas aimé votre message$',
-            r'.*a envoyé une photo',
-            r'.*a envoyé une vidéo',
-            r'.*a envoyé une pièce jointe',
-            r'.*a envoyé un message vocal',
-            r'.*a envoyé un autocollant',
-            r'.*a envoyé un GIF',
-            r'.*a commencé un appel',
-            r'.*a raté un appel',
-            r'.*a terminé l\'appel',
-            r'.* est maintenant administrateur',
-            r'.* n\'est plus administrateur',
-            r'Le groupe a été créé',
-            r'Vous avez créé le groupe',
-            r'.*a défini la photo du groupe'
+            r".*a quitté le (groupe|conversation)",
+            r".*a rejoint (le groupe|la conversation)",
+            r".*a ajouté .* au (groupe|conversation)",
+            r".*a retiré .* du (groupe|conversation)",
+            r".*a changé le nom du groupe",
+            r"^(?!Je |Tu |Vous |Nous |Ils |Elles |Il |Elle )[A-Z][a-zA-Z\s]+ a aimé votre message$",
+            r"^(?!Je |Tu |Vous |Nous |Ils |Elles |Il |Elle )[A-Z][a-zA-Z\s]+ a réagi .* à votre message$",
+            r"^(?!Je |Tu |Vous |Nous |Ils |Elles |Il |Elle )[A-Z][a-zA-Z\s]+ a adoré votre message$",
+            r"^(?!Je |Tu |Vous |Nous |Ils |Elles |Il |Elle )[A-Z][a-zA-Z\s]+ a ri de votre message$",
+            r"^(?!Je |Tu |Vous |Nous |Ils |Elles |Il |Elle )[A-Z][a-zA-Z\s]+ a souligné votre message$",
+            r"^(?!Je |Tu |Vous |Nous |Ils |Elles |Il |Elle )[A-Z][a-zA-Z\s]+ a questionné votre message$",
+            r"^(?!Je |Tu |Vous |Nous |Ils |Elles |Il |Elle )[A-Z][a-zA-Z\s]+ n\'a pas aimé votre message$",
+            r".*a envoyé une photo",
+            r".*a envoyé une vidéo",
+            r".*a envoyé une pièce jointe",
+            r".*a envoyé un message vocal",
+            r".*a envoyé un autocollant",
+            r".*a envoyé un GIF",
+            r".*a commencé un appel",
+            r".*a raté un appel",
+            r".*a terminé l\'appel",
+            r".* est maintenant administrateur",
+            r".* n\'est plus administrateur",
+            r"Le groupe a été créé",
+            r"Vous avez créé le groupe",
+            r".*a défini la photo du groupe",
         ]
-        
+
         # Combine all patterns
         all_patterns = english_patterns + french_patterns
-        
+
         # Check if text matches any system message pattern
         for pattern in all_patterns:
             if re.fullmatch(pattern, text, re.IGNORECASE):
                 return True
-                
+
         return False
 
     def preprocess_text(self, text):
         """Clean text by removing links, emojis, and weird characters"""
         if not text or not isinstance(text, str):
             return ""
-        
+
         # Fix Facebook's double-encoded UTF-8 characters
         try:
             # Facebook exports often double-encode UTF-8 as latin1 then UTF-8
             # First try to fix the most common issue: UTF-8 bytes interpreted as latin1
-            if any(char in text for char in ['Ã', 'â', 'ð']):
+            if any(char in text for char in ["Ã", "â", "ð"]):
                 # Encode as latin1, then decode as UTF-8
-                text = text.encode('latin1').decode('utf-8')
+                text = text.encode("latin1").decode("utf-8")
         except (UnicodeDecodeError, UnicodeEncodeError):
             # If that fails, try the reverse encoding fix
             try:
-                text = text.encode('utf-8').decode('latin1')
+                text = text.encode("utf-8").decode("latin1")
             except (UnicodeDecodeError, UnicodeEncodeError):
                 # Last resort: manual replacement of common patterns
                 replacements = {
-                    'Ã©': 'é', 'Ã ': 'à', 'Ã¨': 'è', 'Ãª': 'ê', 'Ã§': 'ç',
-                    'Ã´': 'ô', 'Ã®': 'î', 'Ã¯': 'ï', 'Ã»': 'û', 'Ã¹': 'ù',
-                    'Ã±': 'ñ', 'Ã¢': 'â', 'Ã¼': 'ü', 'Ã¶': 'ö', 'Ã¤': 'ä',
-                    'â': "'", 'â': "'", 'â': '"', 'â': '"', 'â': '—',
-                    'ð': '', 'ð': '', 'ð': '', 'ð': '', 'ð': ''
+                    "Ã©": "é",
+                    "Ã ": "à",
+                    "Ã¨": "è",
+                    "Ãª": "ê",
+                    "Ã§": "ç",
+                    "Ã´": "ô",
+                    "Ã®": "î",
+                    "Ã¯": "ï",
+                    "Ã»": "û",
+                    "Ã¹": "ù",
+                    "Ã±": "ñ",
+                    "Ã¢": "â",
+                    "Ã¼": "ü",
+                    "Ã¶": "ö",
+                    "Ã¤": "ä",
+                    "â": "'",
+                    "â": "'",
+                    "â": '"',
+                    "â": '"',
+                    "â": "—",
+                    "ð": "",
+                    "ð": "",
+                    "ð": "",
+                    "ð": "",
+                    "ð": "",
                 }
                 for wrong, correct in replacements.items():
                     text = text.replace(wrong, correct)
-        
+
         # Remove URLs (http/https links)
-        text = re.sub(r'https?://\S+', '', text)
-        
+        text = re.sub(r"https?://\S+", "", text)
+
         # Remove email addresses
-        text = re.sub(r'\S+@\S+', '', text)
-        
+        text = re.sub(r"\S+@\S+", "", text)
+
         # Remove emojis and emoticons
         # Unicode emoji ranges
         emoji_pattern = re.compile(
             "["
-            "\U0001F600-\U0001F64F"  # emoticons
-            "\U0001F300-\U0001F5FF"  # symbols & pictographs
-            "\U0001F680-\U0001F6FF"  # transport & map symbols
-            "\U0001F1E0-\U0001F1FF"  # flags (iOS)
-            "\U00002500-\U00002BEF"  # chinese char
-            "\U00002702-\U000027B0"
-            "\U00002702-\U000027B0"
-            "\U000024C2-\U0001F251"
+            "\U0001f600-\U0001f64f"  # emoticons
+            "\U0001f300-\U0001f5ff"  # symbols & pictographs
+            "\U0001f680-\U0001f6ff"  # transport & map symbols
+            "\U0001f1e0-\U0001f1ff"  # flags (iOS)
+            "\U00002500-\U00002bef"  # chinese char
+            "\U00002702-\U000027b0"
+            "\U00002702-\U000027b0"
+            "\U000024c2-\U0001f251"
             "\U0001f926-\U0001f937"
             "\U00010000-\U0010ffff"
             "\u2640-\u2642"
-            "\u2600-\u2B55"
+            "\u2600-\u2b55"
             "\u200d"
             "\u23cf"
             "\u23e9"
@@ -172,16 +192,20 @@ class MessengerDataProcessor:
             "\ufe0f"  # dingbats
             "\u3030"
             "]+",
-            flags=re.UNICODE
+            flags=re.UNICODE,
         )
-        text = emoji_pattern.sub('', text)
-        
+        text = emoji_pattern.sub("", text)
+
         # Remove other special characters but keep basic punctuation and French accented characters
-        text = re.sub(r'[^\w\s\.\,\!\?\;\:\-\'\"àáâãäåæçèéêëìíîïðñòóôõöøùúûüýþÿÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞŸ]', '', text)
-        
+        text = re.sub(
+            r"[^\w\s\.\,\!\?\;\:\-\'\"àáâãäåæçèéêëìíîïðñòóôõöøùúûüýþÿÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞŸ]",
+            "",
+            text,
+        )
+
         # Remove extra whitespace
-        text = re.sub(r'\s+', ' ', text).strip()
-        
+        text = re.sub(r"\s+", " ", text).strip()
+
         return text
 
     def load_messenger_data(self):
@@ -233,10 +257,12 @@ class MessengerDataProcessor:
                 # Skip system messages (group notifications, reactions, etc.)
                 if self.is_system_message(msg["content"]):
                     continue
-                    
+
                 # Preprocess the message content
                 preprocessed_content = self.preprocess_text(msg["content"])
-                if preprocessed_content:  # Only add if there's content left after preprocessing
+                if (
+                    preprocessed_content
+                ):  # Only add if there's content left after preprocessing
                     msg_copy = msg.copy()
                     msg_copy["content"] = preprocessed_content
                     current_conv.append(msg_copy)
@@ -300,7 +326,7 @@ class MessengerDataProcessor:
 
         return "\n".join(context_msgs)
 
-    def prepare_dataset(self, your_name=None):
+    def prepare_dataset(self, your_name=None, max_samples=None):
         """Main method to prepare the dataset"""
         messages = self.load_messenger_data()
         conversations = self.create_conversations(messages)
@@ -312,6 +338,11 @@ class MessengerDataProcessor:
         # Filter out very long conversations
         df["total_length"] = df["prompt"].str.len() + df["response"].str.len()
         df = df[df["total_length"] < self.max_context_length]
+
+        # Limit dataset size if specified
+        if max_samples is not None and len(df) > max_samples:
+            df = df.sample(n=max_samples, random_state=42).reset_index(drop=True)
+            print(f"Sampled {max_samples} examples from {len(df)} total")
 
         print(f"Final dataset size: {len(df)} examples")
         return df
@@ -397,8 +428,8 @@ class MacOSLLMFineTuner:
 
         # Apply LoRA
         lora_config = LoraConfig(
-            r=32,  # LoRA rank - increased for better capacity
-            lora_alpha=64,
+            r=16,  # Lower LoRA rank for stability
+            lora_alpha=32,  # Lower alpha to reduce learning rate scaling
             target_modules=[
                 "c_attn",
                 "c_proj",
@@ -415,34 +446,30 @@ class MacOSLLMFineTuner:
         return model, tokenizer
 
     def format_dataset(self, df, tokenizer):
-        """Format dataset for training"""
-        # Convert to the format expected by the model
+        """Format dataset for training - simplified like the article"""
+        # Convert to the format expected by the model - simple text format
         formatted_data = []
 
         for _, row in df.iterrows():
-            # Create conversation format
-            if row["context"]:
-                conversation = f"Previous conversation:\n{row['context']}\n\n"
-            else:
-                conversation = ""
-
-            # Simple format for training
-            text = f"{conversation}User: {row['prompt']}\nAssistant: {row['response']}"
-
+            # Simple format matching the article - just the response text
+            text = row["response"]  # Use just the response for language modeling
             formatted_data.append({"text": text})
 
         # Create HuggingFace dataset
         dataset = Dataset.from_list(formatted_data)
 
-        # Add tokenization to the dataset
+        # Tokenization function matching the article exactly
         def tokenize_function(examples):
-            return tokenizer(
+            inputs = tokenizer(
                 examples["text"],
                 truncation=True,
                 padding="max_length",
-                max_length=self.max_seq_length,
-                return_tensors="pt",
+                max_length=128,  # Match article's max_length
             )
+            inputs["labels"] = inputs[
+                "input_ids"
+            ].copy()  # Critical: set labels = input_ids
+            return inputs
 
         # Apply tokenization
         tokenized_dataset = dataset.map(
@@ -457,48 +484,78 @@ class MacOSLLMFineTuner:
         """Train the model"""
         print("Starting training...")
 
-        # Training arguments optimized for macOS
+        # Training arguments matching the article
         training_args = TrainingArguments(
             output_dir=str(self.output_dir / "checkpoints"),
-            per_device_train_batch_size=batch_size,
-            gradient_accumulation_steps=4,
+            eval_strategy="epoch",  # Match article
             num_train_epochs=num_epochs,
-            learning_rate=5e-5,
-            warmup_steps=0,
+            per_device_train_batch_size=batch_size,
+            per_device_eval_batch_size=batch_size,  # Match article
+            warmup_steps=500,  # Match article
+            weight_decay=0.01,  # Match article
+            logging_dir=str(self.output_dir / "logs"),  # Match article
             logging_steps=10,
             save_strategy="steps",
             save_steps=500,
-            eval_strategy="no",
             save_total_limit=3,
             load_best_model_at_end=False,
-            optim="adamw_torch",  # Standard optimizer for macOS
             fp16=False,  # FP16 is not supported on macOS
             bf16=False,  # BF16 is not supported on macOS
-            gradient_checkpointing=True,
-            max_grad_norm=0.3,
-            warmup_ratio=0.0,
-            lr_scheduler_type="constant",
             dataloader_num_workers=0,  # Important for macOS
             remove_unused_columns=False,
             report_to="wandb" if wandb_enabled else "none",
         )
 
-        # Data collator for causal language modeling
-        from transformers.data.data_collator import DataCollatorForLanguageModeling
+        # Import trainer components
+        from transformers.trainer_callback import TrainerCallback
 
-        data_collator = DataCollatorForLanguageModeling(
-            tokenizer=tokenizer,
-            mlm=False,  # For causal LM, not masked LM
-        )
+        # No custom data collator needed - let Trainer handle it automatically like in the article
+
+        # Custom callback to monitor loss explosion
+        class LossMonitorCallback(TrainerCallback):
+            def __init__(self, loss_threshold=10.0):
+                self.loss_threshold = loss_threshold
+                self.previous_loss = None
+
+            def on_log(self, args, state, control, model=None, logs=None, **kwargs):
+                if logs and "train_loss" in logs:
+                    current_loss = logs["train_loss"]
+
+                    # Check for loss explosion
+                    if current_loss > self.loss_threshold:
+                        print(
+                            f"WARNING: Loss exploded to {current_loss:.4f}! Stopping training."
+                        )
+                        control.should_training_stop = True
+
+                    # Check for rapid loss increase
+                    if self.previous_loss is not None:
+                        loss_increase = current_loss - self.previous_loss
+                        if loss_increase > 2.0:  # If loss increases by more than 2
+                            print(
+                                f"WARNING: Loss increased rapidly by {loss_increase:.4f}!"
+                            )
+
+                    self.previous_loss = current_loss
+
+        loss_monitor = LossMonitorCallback()
 
         # Create trainer using standard Trainer instead of SFTTrainer
         from transformers.trainer import Trainer
 
+        # Split dataset for train/eval like the article
+        train_size = int(0.9 * len(dataset))
+        eval_size = len(dataset) - train_size
+        train_dataset, eval_dataset = torch.utils.data.random_split(
+            dataset, [train_size, eval_size]
+        )
+
         trainer = Trainer(
             model=model,
             args=training_args,
-            train_dataset=dataset,
-            data_collator=data_collator,
+            train_dataset=train_dataset,
+            eval_dataset=eval_dataset,  # Add eval dataset
+            callbacks=[loss_monitor],
         )
 
         # Train
@@ -659,6 +716,12 @@ def main():
     parser.add_argument(
         "--disable_wandb", action="store_true", help="Disable Weights & Biases tracking"
     )
+    parser.add_argument(
+        "--max_samples",
+        type=int,
+        default=None,
+        help="Limit dataset to N samples for testing",
+    )
 
     args = parser.parse_args()
 
@@ -694,7 +757,9 @@ def main():
     processor = MessengerDataProcessor(
         args.data_path, max_context_length=args.max_seq_length
     )
-    df = processor.prepare_dataset(your_name=args.your_name)
+    df = processor.prepare_dataset(
+        your_name=args.your_name, max_samples=args.max_samples
+    )
 
     # Log dataset info to wandb if enabled
     if wandb_enabled:
