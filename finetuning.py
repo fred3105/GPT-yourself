@@ -322,7 +322,7 @@ class MacOSLLMFineTuner:
 
     def __init__(
         self,
-        base_model="Qwen/Qwen-1_8B",  # Qwen model for fine-tuning
+        base_model="gpt2-medium",  # GPT-2 model for fine-tuning
         max_seq_length=2048,
         output_dir="./fine_tuned_model",
         use_mps=None,
@@ -397,13 +397,14 @@ class MacOSLLMFineTuner:
 
         # Apply LoRA
         lora_config = LoraConfig(
-            r=16,  # LoRA rank
-            lora_alpha=32,
+            r=32,  # LoRA rank - increased for better capacity
+            lora_alpha=64,
             target_modules=[
                 "c_attn",
                 "c_proj",
-            ],  # You might need to adjust these based on the model architecture
-            lora_dropout=0.1,
+                "c_fc",
+            ],  # GPT-2 attention and feed-forward modules
+            lora_dropout=0.05,
             bias="none",
             task_type=TaskType.CAUSAL_LM,
         )
@@ -460,9 +461,9 @@ class MacOSLLMFineTuner:
         training_args = TrainingArguments(
             output_dir=str(self.output_dir / "checkpoints"),
             per_device_train_batch_size=batch_size,
-            gradient_accumulation_steps=2,
+            gradient_accumulation_steps=4,
             num_train_epochs=num_epochs,
-            learning_rate=2e-5,
+            learning_rate=5e-5,
             warmup_steps=0,
             logging_steps=10,
             save_strategy="steps",
@@ -627,8 +628,8 @@ def main():
     parser.add_argument(
         "--model",
         type=str,
-        default="Qwen/Qwen-1_8B",
-        help="Base model to fine-tune (Qwen-1_8B recommended for macOS)",
+        default="gpt2-medium",
+        help="Base model to fine-tune (gpt2-medium recommended for macOS)",
     )
     parser.add_argument(
         "--max_seq_length", type=int, default=1024, help="Maximum sequence length"
